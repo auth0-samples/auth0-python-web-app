@@ -1,6 +1,14 @@
-# Auth0 Python Web App
+# Auth0 Python Web App Sample
 
 This sample demonstrates how to add authentication to a Python web app using Auth0.
+
+# Running the App
+
+To run the sample, make sure you have `python` and `pip` installed.
+
+Rename `.env.example` to `.env` and populate it with the client ID, domain, and secret for your Auth0 app.
+
+Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. The app will be served at [http://localhost:3000/](http://localhost:3000/).
 
 ## What is Auth0?
 
@@ -29,3 +37,5 @@ If you have found a bug or if you have a feature request, please report them at 
 ## License
 
 This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
+
+
