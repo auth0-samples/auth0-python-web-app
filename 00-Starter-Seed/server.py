@@ -54,7 +54,7 @@ def static_files(filename):
 def callback_handling():
     code = request.args.get(constants.CODE_KEY)
     json_header = {constants.CONTENT_TYPE_KEY: constants.APP_JSON_KEY}
-    token_url = 'https://{domain}/oauth/token'.format(domain=env[constants.AUTH0_DOMAIN])
+    token_url = 'https://{domain_auth0}/oauth/token'.format(domain_auth0=env[constants.AUTH0_DOMAIN])
     token_payload = {
         constants.CLIENT_ID_KEY : env[constants.AUTH0_CLIENT_ID],
         constants.CLIENT_SECRET_KEY : env[constants.AUTH0_CLIENT_SECRET],
@@ -65,8 +65,8 @@ def callback_handling():
 
     token_info = requests.post(token_url, data=json.dumps(token_payload),
                                headers=json_header).json()
-    user_url = 'https://{domain}/userinfo?access_token={access_token}'.format(
-        domain=env[constants.AUTH0_DOMAIN], access_token=token_info[constants.ACCESS_TOKEN_KEY])
+    user_url = 'https://{domain_auth0}/userinfo?access_token={access_token}'.format(
+        domain_auth0=env[constants.AUTH0_DOMAIN], access_token=token_info[constants.ACCESS_TOKEN_KEY])
     user_info = requests.get(user_url).json()
     session[constants.PROFILE_KEY] = user_info
     return redirect('/dashboard')
