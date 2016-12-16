@@ -63,8 +63,7 @@ def callback_handling():
         constants.GRANT_TYPE_KEY : constants.AUTHORIZATION_CODE_KEY
     }
 
-    token_info = requests.post(token_url, data=json.dumps(token_payload),
-                               headers=json_header).json()
+    token_info = requests.post(token_url, json=token_payload).json()
     user_url = 'https://{auth0_domain}/userinfo?access_token={access_token}'.format(
         auth0_domain=env[constants.AUTH0_DOMAIN], access_token=token_info[constants.ACCESS_TOKEN_KEY])
     user_info = requests.get(user_url).json()
