@@ -9,7 +9,6 @@ from flask import Flask
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import send_from_directory
 from flask import session
 import requests
 
@@ -23,7 +22,7 @@ try:
 except IOError:
     env = os.environ
 
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__)
 app.secret_key = constants.SECRET_KEY
 app.debug = True
 
@@ -45,10 +44,6 @@ def home():
 @requires_auth
 def dashboard():
     return render_template('dashboard.html', user=session[constants.PROFILE_KEY])
-
-@app.route('/public/<path:filename>')
-def static_files(filename):
-    return send_from_directory('./public', filename)
 
 @app.route('/callback')
 def callback_handling():
