@@ -14,7 +14,7 @@ import requests
 import constants
 
 # Load Env variables
-env = NoneConflicting files
+env = None
 
 
 try:
