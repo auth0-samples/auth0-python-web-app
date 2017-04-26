@@ -13,6 +13,7 @@ from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import session
+import requests
 
 import constants
 
@@ -29,6 +30,8 @@ APP.debug = True
 
 
 def requires_auth(f):
+    """Determines if the access token is valid
+    """
     @wraps(f)
     def decorated(*args, **kwargs):
         if constants.PROFILE_KEY not in session:
@@ -36,16 +39,24 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-
 # Controllers API
 @APP.route('/')
 def home():
     return render_template('home.html', env=env)
 
 
-@APP.route('/dashboard')
+@APP.route('/dashboard', methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
+    if request.method == 'POST':
+        json_header = {
+            constants.CONTENT_TYPE_KEY: constants.APP_JSON_KEY,
+            'authorization': 'bearer {access_token}'.format(access_token=session['access_token'])
+        }
+        api_response = requests.get('http://localhost:3001/secured/ping',
+                                    headers=json_header)
+        return render_template('dashboard.html',
+                                   user=session[constants.PROFILE_KEY], apires=api_response.text)
     return render_template('dashboard.html',
                            user=session[constants.PROFILE_KEY])
 
@@ -63,6 +74,7 @@ def callback_handling():
     token = get_token.authorization_code(AUTH0_CLIENT_ID,
                                          AUTH0_CLIENT_SECRET, code, AUTH0_CALLBACK_URL)
     user_info = auth0_users.userinfo(token['access_token'])
+    session['access_token'] = token['access_token']
     session[constants.PROFILE_KEY] = json.loads(user_info)
     return redirect('/dashboard')
 
