@@ -1,4 +1,0 @@
-flask
-dotenv
-requests
-auth0-python
