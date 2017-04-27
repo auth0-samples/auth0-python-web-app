@@ -1,6 +1,6 @@
 # Auth0 Python Web App Sample
 
-This sample demonstrates how to add authentication to a Python web app using Auth0.
+This sample demonstrates how to add authentication to a Python web app using Auth0 and how to call an API from the server using an RS256 access token.
 
 # Running the App
 
