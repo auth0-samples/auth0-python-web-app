@@ -1,6 +1,7 @@
 """ Constants file for Auth0's seed project
 """
 ACCESS_TOKEN_KEY = 'access_token'
+API_ID = 'API_ID'
 APP_JSON_KEY = 'application/json'
 AUTH0_CLIENT_ID = 'AUTH0_CLIENT_ID'
 AUTH0_CLIENT_SECRET = 'AUTH0_CLIENT_SECRET'

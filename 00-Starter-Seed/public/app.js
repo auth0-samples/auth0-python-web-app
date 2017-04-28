@@ -1,12 +1,17 @@
 $(document).ready(function() {
-     var lock = new Auth0Lock(AUTH0_CLIENT_ID, AUTH0_DOMAIN, {
-        auth: {
-          redirectUrl: AUTH0_CALLBACK_URL
-        }
-     });
+  var auth = new auth0.WebAuth({
+    domain: AUTH0_DOMAIN,
+    clientID: AUTH0_CLIENT_ID
+   });
+
 
     $('.btn-login').click(function(e) {
       e.preventDefault();
-      lock.show();
+      auth.authorize({
+        audience: API_AUDIENCE,
+        scope: 'openid profile',
+        responseType: 'code',
+        redirectUri: AUTH0_CALLBACK_URL
+      });
     });
 });

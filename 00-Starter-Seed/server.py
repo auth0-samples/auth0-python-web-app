@@ -1,33 +1,33 @@
-"""Auth0's sample server
+"""Python Flask WebApp Auth0 integration example
 """
 from functools import wraps
-import os
+from os import environ as env, path
+import json
 
-from dotenv import Dotenv
+from auth0.v3.authentication import GetToken
+from auth0.v3.authentication import Users
+from dotenv import load_dotenv
 from flask import Flask
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import session
-import requests
 
 import constants
 
-# Load Env variables
-env = None
+load_dotenv(path.join(path.dirname(__file__), ".env"))
+API_AUDIENCE = env[constants.API_ID]
+AUTH0_CALLBACK_URL = env[constants.AUTH0_CALLBACK_URL]
+AUTH0_CLIENT_ID = env[constants.AUTH0_CLIENT_ID]
+AUTH0_CLIENT_SECRET = env[constants.AUTH0_CLIENT_SECRET]
+AUTH0_DOMAIN = env[constants.AUTH0_DOMAIN]
 
-try:
-    env = Dotenv('./.env')
-except IOError:
-    env = os.environ
-
-app = Flask(__name__, static_url_path='')
-app.secret_key = constants.SECRET_KEY
-app.debug = True
+APP = Flask(__name__, static_url_path='')
+APP.secret_key = constants.SECRET_KEY
+APP.debug = True
 
 
-# Requires authentication decorator
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -38,47 +38,33 @@ def requires_auth(f):
 
 
 # Controllers API
-@app.route('/')
+@APP.route('/')
 def home():
     return render_template('home.html', env=env)
 
 
-@app.route('/dashboard')
+@APP.route('/dashboard')
 @requires_auth
 def dashboard():
     return render_template('dashboard.html',
                            user=session[constants.PROFILE_KEY])
 
 
-@app.route('/public/<path:filename>')
+@APP.route('/public/<path:filename>')
 def static_files(filename):
     return send_from_directory('./public', filename)
 
 
-@app.route('/callback')
+@APP.route('/callback')
 def callback_handling():
     code = request.args.get(constants.CODE_KEY)
-    json_header = {constants.CONTENT_TYPE_KEY: constants.APP_JSON_KEY}
-    token_url = 'https://{auth0_domain}/oauth/token'.format(
-                    auth0_domain=env[constants.AUTH0_DOMAIN])
-    token_payload = {
-        constants.CLIENT_ID_KEY: env[constants.AUTH0_CLIENT_ID],
-        constants.CLIENT_SECRET_KEY: env[constants.AUTH0_CLIENT_SECRET],
-        constants.REDIRECT_URI_KEY: env[constants.AUTH0_CALLBACK_URL],
-        constants.CODE_KEY: code,
-        constants.GRANT_TYPE_KEY: constants.AUTHORIZATION_CODE_KEY
-    }
-
-    token_info = requests.post(token_url, json=token_payload,
-                               headers=json_header).json()
-
-    user_url = 'https://{auth0_domain}/userinfo?access_token={access_token}'\
-        .format(auth0_domain=env[constants.AUTH0_DOMAIN],
-                access_token=token_info[constants.ACCESS_TOKEN_KEY])
-
-    user_info = requests.get(user_url).json()
-    session[constants.PROFILE_KEY] = user_info
+    get_token = GetToken(AUTH0_DOMAIN)
+    auth0_users = Users(AUTH0_DOMAIN)
+    token = get_token.authorization_code(AUTH0_CLIENT_ID,
+                                         AUTH0_CLIENT_SECRET, code, AUTH0_CALLBACK_URL)
+    user_info = auth0_users.userinfo(token['access_token'])
+    session[constants.PROFILE_KEY] = json.loads(user_info)
     return redirect('/dashboard')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 3000))
+    APP.run(host='0.0.0.0', port=env.get('PORT', 3000))
