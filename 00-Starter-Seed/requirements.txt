@@ -1,4 +1,4 @@
 flask
-dotenv
+python-dotenv
 requests
 auth0-python
