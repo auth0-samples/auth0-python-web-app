@@ -1,6 +1,7 @@
 """Python Flask WebApp Auth0 integration example
 """
 from functools import wraps
+from urllib.parse import urlparse
 from os import environ as env, path
 import json
 
@@ -47,8 +48,14 @@ def home():
 @requires_auth
 def dashboard():
     return render_template('dashboard.html',
-                           user=session[constants.PROFILE_KEY])
+                           user=session[constants.PROFILE_KEY], env=env)
 
+@APP.route('/logout')
+def logout():
+    session.clear()
+    parsed_base_url = urlparse(AUTH0_CALLBACK_URL)
+    base_url = parsed_base_url.scheme + '://' + parsed_base_url.netloc
+    return redirect('https://%s/v2/logout?returnTo=%s&client_id=%s' % (AUTH0_DOMAIN, base_url, AUTH0_CLIENT_ID))
 
 @APP.route('/public/<path:filename>')
 def static_files(filename):
