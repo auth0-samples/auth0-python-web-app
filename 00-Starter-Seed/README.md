@@ -6,7 +6,7 @@ This sample demonstrates how to add authentication to a Python web app using Aut
 
 To run the sample, make sure you have `python` and `pip` installed.
 
-Rename `.env.example` to `.env` and populate it with the client ID, domain, and secret for your Auth0 app. Also, add the callback URL to the settings section of your Auth0 client.
+Rename `.env.example` to `.env` and populate it with the client ID, domain, secret, and audience for your Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience. Also, add the callback URL to the settings section of your Auth0 client.
 
 Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. The app will be served at [http://localhost:3000/](http://localhost:3000/).
 
