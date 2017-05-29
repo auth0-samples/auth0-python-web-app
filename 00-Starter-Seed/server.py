@@ -17,7 +17,6 @@ from flask import session
 import constants
 
 load_dotenv(path.join(path.dirname(__file__), ".env"))
-API_AUDIENCE = env[constants.API_ID]
 AUTH0_CALLBACK_URL = env[constants.AUTH0_CALLBACK_URL]
 AUTH0_CLIENT_ID = env[constants.AUTH0_CLIENT_ID]
 AUTH0_CLIENT_SECRET = env[constants.AUTH0_CLIENT_SECRET]
