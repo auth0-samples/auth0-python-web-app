@@ -8,7 +8,7 @@ $(document).ready(function() {
     $('.btn-login').click(function(e) {
       e.preventDefault();
       auth.authorize({
-        audience: API_AUDIENCE,
+        audience: 'https://'+AUTH0_DOMAIN+'/userinfo', // you can also set this on the .env file and put API_AUDIENCE instead
         scope: 'openid profile',
         responseType: 'code',
         redirectUri: AUTH0_CALLBACK_URL
