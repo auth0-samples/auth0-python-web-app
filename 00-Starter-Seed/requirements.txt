@@ -1,4 +1,4 @@
 flask
 python-dotenv
 requests
-auth0-python
+flask-oauthlib
