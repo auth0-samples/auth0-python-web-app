@@ -4,13 +4,13 @@ This sample demonstrates how to add authentication to a Python web app using Aut
 
 # Running the App
 
-To run the sample, make sure you have `python` and `pip` installed.
+To run the sample, make sure you have `python`, `pip` and `docker` installed.
 
-Rename `.env.example` to `.env` and populate it with the client ID, domain, secret, and audience for your Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience. Also, add the callback URL to the settings section of your Auth0 client.
+Rename `.env.example` to `.env` and populate it with the client ID, domain, secret, callback URL and audience for your Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience. Also, add the callback URL to the settings section of your Auth0 client.
 
 Register `http://localhost:3000/callback` as `Allowed Callback URLs` and `http://localhost:3000` as `Allowed Logout URLs` in your app settings.
 
-Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. The app will be served at [http://localhost:3000/](http://localhost:3000/).
+Run `docker build -t auth0-python-web-01-login .` to build the docker image and run `docker run --env-file .env -p 3000:3000 -it auth0-python-web-01-login` to run the docker image.
 
 ## What is Auth0?
 
@@ -34,8 +34,8 @@ If you have found a bug or if you have a feature request, please report them at 
 
 ## Author
 
-[Auth0](auth0.com)
+[Auth0](https://auth0.com)
 
 ## License
 
-This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
+This project is licensed under the MIT license. See the [LICENSE](https://opensource.org/licenses/MIT) file for more info.
