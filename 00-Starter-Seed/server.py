@@ -8,7 +8,6 @@ from flask import Flask
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import send_from_directory
 from flask import session
 from flask import url_for
 from flask_oauthlib.client import OAuth
@@ -22,7 +21,7 @@ AUTH0_CLIENT_SECRET = env[constants.AUTH0_CLIENT_SECRET]
 AUTH0_DOMAIN = env[constants.AUTH0_DOMAIN]
 AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
 
-APP = Flask(__name__, static_url_path='')
+APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
 APP.debug = True
 oauth = OAuth(APP)
@@ -71,10 +70,6 @@ def logout():
     session.clear()
     params = {'returnTo': url_for('home', _external=True), 'client_id': AUTH0_CLIENT_ID}
     return redirect(auth0.base_url + '/v2/logout?' + urlencode(params))
-
-@APP.route('/public/<path:filename>')
-def static_files(filename):
-    return send_from_directory('./public', filename)
 
 
 @APP.route('/callback')
