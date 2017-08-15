@@ -12,15 +12,15 @@ Register `http://localhost:3000/callback` as `Allowed Callback URLs` and `http:/
 
 Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. The app will be served at [http://localhost:3000/](http://localhost:3000/).
 
-#Running the App with Docker
+# Running the App with Docker
 
-To run the sample, make sure you have `python`, `pip` and `docker` installed.
+To run the sample, make sure you have `docker` installed.
 
 Rename `.env.example` to `.env` and populate it with the client ID, domain, secret, callback URL and audience for your Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience. Also, add the callback URL to the settings section of your Auth0 client.
 
 Register `http://localhost:3000/callback` as `Allowed Callback URLs` and `http://localhost:3000` as `Allowed Logout URLs` in your app settings.
 
-Run `docker build -t auth0-python-web-01-login .` to build the docker image and run `docker run --env-file .env -p 3000:3000 -it auth0-python-web-01-login` to run the docker image.
+Run `sh exec.sh` to build and run the docker image in Linux or run `.\exec.ps1` to build and run the docker image on Windows.
 
 ## What is Auth0?
 
