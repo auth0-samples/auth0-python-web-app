@@ -1,7 +1,10 @@
 """Python Flask WebApp Auth0 integration example
 """
 from functools import wraps
-from urllib.parse import urlencode
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 from os import environ as env
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask
