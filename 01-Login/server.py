@@ -1,15 +1,10 @@
 """Python Flask WebApp Auth0 integration example
 """
-from functools import wraps
-from six.moves.urllib.parse import urlencode
 from os import environ as env
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask
-from flask import redirect
 from flask import render_template
 from flask import request
-from flask import session
-from flask import url_for
 from flask_oauthlib.client import OAuth
 
 import constants
@@ -41,35 +36,11 @@ auth0 = oauth.remote_app(
     authorize_url='/authorize',
 )
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if constants.PROFILE_KEY not in session:
-            return redirect('/')
-        return f(*args, **kwargs)
-    return decorated
-
 
 # Controllers API
 @APP.route('/')
 def home():
-    if constants.PROFILE_KEY in session:
-        return redirect(url_for('dashboard'))
-
     return render_template('home.html', env=env)
-
-
-@APP.route('/dashboard')
-@requires_auth
-def dashboard():
-    return render_template('dashboard.html',
-                           user=session[constants.PROFILE_KEY], env=env)
-
-@APP.route('/logout')
-def logout():
-    session.clear()
-    params = {'returnTo': url_for('home', _external=True), 'client_id': AUTH0_CLIENT_ID}
-    return redirect(auth0.base_url + '/v2/logout?' + urlencode(params))
 
 
 @APP.route('/callback')
@@ -81,22 +52,12 @@ def callback_handling():
             request.args['error_description']
         )
 
-    session['access_token'] = (resp['access_token'], '')
-
-    user_info = auth0.get('userinfo')
-    session[constants.PROFILE_KEY] = user_info.data
-
-    return redirect('/dashboard')
+    return render_template('dashboard.html')
 
 
 @APP.route('/login')
 def login():
     return auth0.authorize(callback=AUTH0_CALLBACK_URL)
-
-
-@auth0.tokengetter
-def get_auth0_oauth_token():
-    return session.get('access_token')
 
 
 if __name__ == "__main__":
