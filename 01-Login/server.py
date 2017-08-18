@@ -40,17 +40,17 @@ auth0 = oauth.remote_app(
 # Controllers API
 @APP.route('/')
 def home():
-    return render_template('home.html', env=env)
+    return render_template('home.html')
 
 
 @APP.route('/callback')
 def callback_handling():
     resp = auth0.authorized_response()
     if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
+        raise Exception('Access denied: reason=%s error=%s' % (
             request.args['error_reason'],
             request.args['error_description']
-        )
+        ))
 
     return render_template('dashboard.html')
 
