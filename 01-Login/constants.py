@@ -17,4 +17,5 @@ GRANT_TYPE_KEY = 'grant_type'
 PROFILE_KEY = 'profile'
 REDIRECT_URI_KEY = 'redirect_uri'
 SECRET_KEY = 'ThisIsTheSecretKey'
+JWT_PAYLOAD = 'jwt_payload'
 

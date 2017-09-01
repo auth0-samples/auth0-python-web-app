@@ -10,10 +10,13 @@
     <body class="home">
         <div class="container">
             <div class="login-page clearfix">
-              <div class="logged-in-box auth0-box logged-in">
-                <h1 id="logo"><img src="//cdn.auth0.com/samples/auth0_logo_final_blue_RGB.png" /></h1>
-                <h2>Welcome, you are logged!</h2>
-              </div>
+                <div class="logged-in-box auth0-box logged-in">
+                    <h1 id="logo"><img src="//cdn.auth0.com/samples/auth0_logo_final_blue_RGB.png" /></h1>
+                    <img class="avatar" src="{{userinfo['picture']}}"/>
+                    <h2>Welcome {{userinfo['email']}}</h2>
+                    <pre>{{userinfo_pretty}}</pre>
+                    <a class="btn btn-primary btn-lg btn-logout btn-block" href="/logout">Logout</a>
+                </div>
             </div>
         </div>
     </body>

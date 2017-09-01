@@ -4,6 +4,9 @@ body {
   font-size: 300%;
   font-weight: 100;
 }
+pre {
+  text-align: left;
+}
 input[type=checkbox],
 input[type=radio] {
   position: absolute;
