@@ -81,7 +81,7 @@ def callback_handling():
     session[constants.JWT_PAYLOAD] = payload
 
     session[constants.PROFILE_KEY] = {
-        'user_id': payload['user_id'],
+        'user_id': payload['sub'],
         'email': payload['email'],
         'picture': payload['picture']
     }
