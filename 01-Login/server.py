@@ -82,7 +82,7 @@ def callback_handling():
 
     session[constants.PROFILE_KEY] = {
         'user_id': payload['sub'],
-        'email': payload['email'],
+        'name': payload['name'],
         'picture': payload['picture']
     }
 
