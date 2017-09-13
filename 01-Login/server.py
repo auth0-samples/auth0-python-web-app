@@ -9,6 +9,7 @@ from flask import render_template
 from flask import request
 from flask import session
 from flask import redirect
+from flask import jsonify
 from flask_oauthlib.client import OAuth
 from functools import wraps
 from six.moves.urllib.parse import urlencode
@@ -30,6 +31,21 @@ AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
 APP.debug = True
+
+
+# Format error response and append status code.
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+
+@APP.errorhandler(Exception)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
+
 oauth = OAuth(APP)
 
 
@@ -67,10 +83,7 @@ def home():
 def callback_handling():
     resp = auth0.authorized_response()
     if resp is None:
-        raise Exception('Access denied: reason=%s error=%s' % (
-            request.args['error_reason'],
-            request.args['error_description']
-        ))
+        raise AuthError({'code': request.args['error'], 'description': request.args['error_description']}, 401)
 
     # Obtain JWT and the keys to validate the signature
     idToken = resp['id_token']
