@@ -1,20 +1,21 @@
 """Python Flask WebApp Auth0 integration example
 """
+from functools import wraps
+import json
 from os import environ as env
-from jose import jwt
+
 from dotenv import load_dotenv, find_dotenv
-from six.moves.urllib.request import urlopen
 from flask import Flask
+from flask import jsonify
+from flask import redirect
 from flask import render_template
 from flask import request
 from flask import session
-from flask import redirect
-from flask import jsonify
-from flask_oauthlib.client import OAuth
-from functools import wraps
-from six.moves.urllib.parse import urlencode
 from flask import url_for
-import json
+from flask_oauthlib.client import OAuth
+from jose import jwt
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
 
 import constants
 
@@ -26,7 +27,7 @@ AUTH0_CALLBACK_URL = env.get(constants.AUTH0_CALLBACK_URL)
 AUTH0_CLIENT_ID = env.get(constants.AUTH0_CLIENT_ID)
 AUTH0_CLIENT_SECRET = env.get(constants.AUTH0_CLIENT_SECRET)
 AUTH0_DOMAIN = env.get(constants.AUTH0_DOMAIN)
-AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
+AUTH0_AUDIENCE = env.get(constants.API_ID)
 
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
@@ -83,13 +84,15 @@ def home():
 def callback_handling():
     resp = auth0.authorized_response()
     if resp is None:
-        raise AuthError({'code': request.args['error'], 'description': request.args['error_description']}, 401)
+        raise AuthError({'code': request.args['error'],
+                         'description': request.args['error_description']}, 401)
 
     # Obtain JWT and the keys to validate the signature
-    idToken = resp['id_token']
+    id_token = resp['id_token']
     jwks = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
 
-    payload = jwt.decode(idToken, jwks.read(), algorithms=['RS256'], audience=AUTH0_CLIENT_ID, issuer="https://"+AUTH0_DOMAIN+"/")
+    payload = jwt.decode(id_token, jwks.read(), algorithms=['RS256'],
+                         audience=AUTH0_CLIENT_ID, issuer="https://"+AUTH0_DOMAIN+"/")
 
     session[constants.JWT_PAYLOAD] = payload
 
