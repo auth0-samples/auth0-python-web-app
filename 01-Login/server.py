@@ -56,7 +56,7 @@ auth0 = oauth.remote_app(
     consumer_secret=AUTH0_CLIENT_SECRET,
     request_token_params={
         'scope': 'openid profile',
-        'audience': AUTH0_AUDIENCE
+        'audience': 'https://' + AUTH0_DOMAIN + '/userinfo'
     },
     base_url='https://%s' % AUTH0_DOMAIN,
     access_token_method='POST',
@@ -104,11 +104,9 @@ def callback_handling():
 
     return redirect('/dashboard')
 
-
 @APP.route('/login')
 def login():
-    return auth0.authorize(callback=AUTH0_CALLBACK_URL)
-
+    return auth0.authorize(callback=AUTH0_CALLBACK_URL if AUTH0_CALLBACK_URL is not '' else "http://localhost:3000/callback")
 
 @APP.route('/logout')
 def logout():
