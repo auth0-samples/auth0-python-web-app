@@ -41,10 +41,16 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
-@APP.errorhandler(Exception)
+@APP.errorhandler(AuthError)
 def handle_auth_error(ex):
     response = jsonify(ex.error)
     response.status_code = ex.status_code
+    return response
+
+
+@APP.errorhandler(Exception)
+def handle_auth_error(ex):
+    response = jsonify(message=ex.message)
     return response
 
 oauth = OAuth(APP)
