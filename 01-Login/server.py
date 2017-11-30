@@ -13,9 +13,8 @@ from flask import request
 from flask import session
 from flask import url_for
 from flask_oauthlib.client import OAuth
-from jose import jwt
 from six.moves.urllib.parse import urlencode
-from six.moves.urllib.request import urlopen
+import requests
 
 import constants
 
@@ -27,7 +26,9 @@ AUTH0_CALLBACK_URL = env.get(constants.AUTH0_CALLBACK_URL)
 AUTH0_CLIENT_ID = env.get(constants.AUTH0_CLIENT_ID)
 AUTH0_CLIENT_SECRET = env.get(constants.AUTH0_CLIENT_SECRET)
 AUTH0_DOMAIN = env.get(constants.AUTH0_DOMAIN)
-AUTH0_AUDIENCE = env.get(constants.API_ID)
+AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
+if AUTH0_AUDIENCE is '':
+    AUTH0_AUDIENCE = 'https://' + AUTH0_DOMAIN + '/userinfo'
 
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
@@ -62,7 +63,7 @@ auth0 = oauth.remote_app(
     consumer_secret=AUTH0_CLIENT_SECRET,
     request_token_params={
         'scope': 'openid profile',
-        'audience': 'https://' + AUTH0_DOMAIN + '/userinfo'
+        'audience': AUTH0_AUDIENCE
     },
     base_url='https://%s' % AUTH0_DOMAIN,
     access_token_method='POST',
@@ -93,26 +94,26 @@ def callback_handling():
         raise AuthError({'code': request.args['error'],
                          'description': request.args['error_description']}, 401)
 
-    # Obtain JWT and the keys to validate the signature
-    id_token = resp['id_token']
-    jwks = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+    url = 'https://' + AUTH0_DOMAIN + '/userinfo'
+    headers = {'authorization': 'Bearer ' + resp['access_token']}
+    resp = requests.get(url, headers=headers)
+    userinfo = resp.json()
 
-    payload = jwt.decode(id_token, jwks.read(), algorithms=['RS256'],
-                         audience=AUTH0_CLIENT_ID, issuer="https://"+AUTH0_DOMAIN+"/")
-
-    session[constants.JWT_PAYLOAD] = payload
+    session[constants.JWT_PAYLOAD] = userinfo
 
     session[constants.PROFILE_KEY] = {
-        'user_id': payload['sub'],
-        'name': payload['name'],
-        'picture': payload['picture']
+        'user_id': userinfo['sub'],
+        'name': userinfo['name'],
+        'picture': userinfo['picture']
     }
 
     return redirect('/dashboard')
 
+
 @APP.route('/login')
 def login():
-    return auth0.authorize(callback=AUTH0_CALLBACK_URL if AUTH0_CALLBACK_URL is not '' else "http://localhost:3000/callback")
+    return auth0.authorize(callback=AUTH0_CALLBACK_URL)
+
 
 @APP.route('/logout')
 def logout():
