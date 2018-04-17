@@ -1,5 +1,5 @@
 flask
 python-dotenv
 requests
-flask-oauthlib
+authlib
 six
