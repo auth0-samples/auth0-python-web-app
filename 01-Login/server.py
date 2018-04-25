@@ -14,7 +14,6 @@ from flask import session
 from flask import url_for
 from authlib.flask.client import OAuth
 from six.moves.urllib.parse import urlencode
-import requests
 
 import constants
 
@@ -76,21 +75,16 @@ def home():
 
 @app.route('/callback')
 def callback_handling():
-    resp = auth0.authorize_access_token()
-
-    url = AUTH0_BASE_URL + '/userinfo'
-    headers = {'authorization': 'Bearer ' + resp['access_token']}
-    resp = requests.get(url, headers=headers)
+    auth0.authorize_access_token()
+    resp = auth0.get('userinfo')
     userinfo = resp.json()
 
     session[constants.JWT_PAYLOAD] = userinfo
-
     session[constants.PROFILE_KEY] = {
         'user_id': userinfo['sub'],
         'name': userinfo['name'],
         'picture': userinfo['picture']
     }
-
     return redirect('/dashboard')
 
 
