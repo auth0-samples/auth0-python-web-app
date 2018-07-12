@@ -1,5 +1,7 @@
 # Auth0 Python Web App
 
+[![CircleCI](https://circleci.com/gh/auth0-samples/auth0-python-web-app.svg?style=svg)](https://circleci.com/gh/auth0-samples/auth0-python-web-app)
+
 This sample demonstrates how to add authentication to a Python web app using Auth0.
 
 ## What is Auth0?
@@ -24,7 +26,7 @@ If you have found a bug or if you have a feature request, please report them at 
 
 ## Author
 
-[Auth0](auth0.com)
+[Auth0](https://auth0.com)
 
 ## License
 
