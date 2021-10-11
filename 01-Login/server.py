@@ -2,7 +2,9 @@
 """
 from functools import wraps
 import json
-from os import environ as env
+import ssl
+from os import environ as env, urandom
+from pathlib import Path
 from werkzeug.exceptions import HTTPException
 
 from dotenv import load_dotenv, find_dotenv
@@ -107,4 +109,9 @@ def dashboard():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=env.get('PORT', 3000))
+    certs_dir = Path('certs')
+    port = int(env.get('PORT', 10443))
+    app.secret_key = urandom(24)
+    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    ctx.load_cert_chain(f'{certs_dir}/localhost.crt', f'{certs_dir}/localhost.key')
+    app.run(debug=True, host='0.0.0.0', port=port, ssl_context=ctx)
