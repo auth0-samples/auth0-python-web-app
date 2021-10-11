@@ -10,11 +10,18 @@ Rename `.env.example` to `.env` and populate it with the client ID, domain, secr
 Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience. 
 Also, add the callback URL to the settings section of your Auth0 client.
 
-Register `http://localhost:3000/callback` as `Allowed Callback URLs` and `http://localhost:3000` 
+Make a folder called `certs` inside the `01-Login` directory and inside the `certs` folder run the following command:
+
+```shell
+openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <( printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+```
+
+Register `https://localhost:10443/callback` as `Allowed Callback URLs` and `https://localhost:10443`
 as `Allowed Logout URLs` in your client settings.
 
-Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. 
-The app will be served at [http://localhost:3000/](http://localhost:3000/).
+The app will be served at [https://localhost:10443/](https://localhost:10443/).
+
+Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`. This commands does not need to be executed running the app with docker.
 
 # Running the App with Docker
 
