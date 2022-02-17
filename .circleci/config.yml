@@ -40,10 +40,15 @@ defaults: &defaults
           path: /tmp/out
 
 # Jobs and Workflows
-version: 2
+version: 2.1
+parameters:
+  machine_image:
+    type: string
+    default: ubuntu-2004:202201-02
 jobs:
   checkout:
-    machine: true
+    machine:
+      image: << pipeline.parameters.machine_image >>
     steps:
       - checkout
       - run: git clone https://github.com/auth0-samples/spa-quickstarts-tests scripts
@@ -52,8 +57,9 @@ jobs:
           paths:
             - project
             - scripts
-  01-login:
-    machine: true
+  login:
+    machine:
+      image: << pipeline.parameters.machine_image >>
     environment:
       - AUTH0_CFG: 01-Login/.env
       - SAMPLE_PATH: 01-Login
@@ -65,7 +71,7 @@ workflows:
     jobs:
       - checkout:
           context: Quickstart Web App Test
-      - 01-login:
+      - login:
           context: Quickstart Web App Test
           requires:
             - checkout
