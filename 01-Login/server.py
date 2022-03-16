@@ -1,35 +1,21 @@
 """Python Flask WebApp Auth0 integration example
 """
-from functools import wraps
+
 import json
 from os import environ as env
-from werkzeug.exceptions import HTTPException
+from urllib.parse import quote_plus, urlencode
 
-from dotenv import load_dotenv, find_dotenv
-from flask import Flask
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import session
-from flask import url_for
 from authlib.integrations.flask_client import OAuth
-from six.moves.urllib.parse import urlencode
-
-import constants
+from dotenv import find_dotenv, load_dotenv
+from flask import Flask, jsonify, redirect, render_template, session, url_for
+from werkzeug.exceptions import HTTPException
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-AUTH0_CALLBACK_URL = env.get(constants.AUTH0_CALLBACK_URL)
-AUTH0_CLIENT_ID = env.get(constants.AUTH0_CLIENT_ID)
-AUTH0_CLIENT_SECRET = env.get(constants.AUTH0_CLIENT_SECRET)
-AUTH0_DOMAIN = env.get(constants.AUTH0_DOMAIN)
-AUTH0_BASE_URL = "https://" + AUTH0_DOMAIN
-AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
-
 app = Flask(__name__, static_url_path="/public", static_folder="./public")
-app.secret_key = constants.SECRET_KEY
+app.secret_key = env.get("APP_SECRET_KEY")
 app.debug = True
 
 
@@ -40,34 +26,40 @@ def handle_auth_error(ex):
     return response
 
 
+def fetch_token(name, request):
+    token = OAuth2Token.find(name=name, user=request.user)
+    return token.to_token()
+
+
 oauth = OAuth(app)
 
 auth0 = oauth.register(
     "auth0",
-    client_id=AUTH0_CLIENT_ID,
-    client_secret=AUTH0_CLIENT_SECRET,
-    api_base_url=AUTH0_BASE_URL,
-    access_token_url=AUTH0_BASE_URL + "/oauth/token",
-    authorize_url=AUTH0_BASE_URL + "/authorize",
+    client_id=env.get("AUTH0_CLIENT_ID"),
+    client_secret=env.get("AUTH0_CLIENT_SECRET"),
+    api_base_url="https://" + env.get("AUTH0_DOMAIN"),
+    access_token_url="https://" + env.get("AUTH0_DOMAIN") + "/oauth/token",
+    authorize_url="https://" + env.get("AUTH0_DOMAIN") + "/authorize",
     client_kwargs={
         "scope": "openid profile email",
     },
+    server_metadata_url="https://"
+    + env.get("AUTH0_DOMAIN")
+    + "/.well-known/openid-configuration",
+    fetch_token=fetch_token,
 )
-
-
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if constants.PROFILE_KEY not in session:
-            return redirect("/login")
-        return f(*args, **kwargs)
-
-    return decorated
 
 
 # Controllers API
 @app.route("/")
 def home():
+    if "profile" in session:
+        return render_template(
+            "dashboard.html",
+            userinfo=session["profile"],
+            userinfo_pretty=json.dumps(session["jwt_payload"], indent=4),
+        )
+
     return render_template("home.html")
 
 
@@ -77,36 +69,35 @@ def callback_handling():
     resp = auth0.get("userinfo")
     userinfo = resp.json()
 
-    session[constants.JWT_PAYLOAD] = userinfo
-    session[constants.PROFILE_KEY] = {
+    session["jwt_payload"] = userinfo
+    session["profile"] = {
         "user_id": userinfo["sub"],
         "name": userinfo["name"],
         "picture": userinfo["picture"],
     }
-    return redirect("/dashboard")
+    return redirect("/")
 
 
 @app.route("/login")
 def login():
     return auth0.authorize_redirect(
-        redirect_uri=AUTH0_CALLBACK_URL, audience=AUTH0_AUDIENCE
+        redirect_uri=env.get("AUTH0_CALLBACK_URL"), audience=env.get("AUTH0_AUDIENCE")
     )
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    params = {"returnTo": url_for("home", _external=True), "client_id": AUTH0_CLIENT_ID}
-    return redirect(auth0.api_base_url + "/v2/logout?" + urlencode(params))
-
-
-@app.route("/dashboard")
-@requires_auth
-def dashboard():
-    return render_template(
-        "dashboard.html",
-        userinfo=session[constants.PROFILE_KEY],
-        userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4),
+    return redirect(
+        auth0.api_base_url
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("home", _external=True),
+                "client_id": env.get("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
     )
 
 
