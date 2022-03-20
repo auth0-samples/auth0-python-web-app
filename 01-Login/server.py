@@ -18,13 +18,6 @@ app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
 
 
-@app.errorhandler(Exception)
-def handle_auth_error(ex):
-    response = jsonify(message=str(ex))
-    response.status_code = ex.code if isinstance(ex, HTTPException) else 500
-    return response
-
-
 def fetch_token(name, request):
     token = OAuth2Token.find(name=name, user=request.user)
     return token.to_token()
