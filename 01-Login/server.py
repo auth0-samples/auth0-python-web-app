@@ -14,9 +14,8 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-app = Flask(__name__, static_url_path="/public", static_folder="./public")
+app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
-app.debug = True
 
 
 @app.errorhandler(Exception)
@@ -33,13 +32,9 @@ def fetch_token(name, request):
 
 oauth = OAuth(app)
 
-auth0 = oauth.register(
+oauth.register(
     "auth0",
     client_id=env.get("AUTH0_CLIENT_ID"),
-    client_secret=env.get("AUTH0_CLIENT_SECRET"),
-    api_base_url="https://" + env.get("AUTH0_DOMAIN"),
-    access_token_url="https://" + env.get("AUTH0_DOMAIN") + "/oauth/token",
-    authorize_url="https://" + env.get("AUTH0_DOMAIN") + "/authorize",
     client_kwargs={
         "scope": "openid profile email",
     },
@@ -53,35 +48,20 @@ auth0 = oauth.register(
 # Controllers API
 @app.route("/")
 def home():
-    if "profile" in session:
-        return render_template(
-            "dashboard.html",
-            userinfo=session["profile"],
-            userinfo_pretty=json.dumps(session["jwt_payload"], indent=4),
-        )
-
-    return render_template("home.html")
+    return render_template("home.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
 
 
-@app.route("/callback")
-def callback_handling():
-    auth0.authorize_access_token()
-    resp = auth0.get("userinfo")
-    userinfo = resp.json()
-
-    session["jwt_payload"] = userinfo
-    session["profile"] = {
-        "user_id": userinfo["sub"],
-        "name": userinfo["name"],
-        "picture": userinfo["picture"],
-    }
+@app.route("/callback", methods=["GET","POST"])
+def callback():
+    token = oauth.auth0.authorize_access_token()
+    session["user"] = token
     return redirect("/")
 
 
 @app.route("/login")
 def login():
-    return auth0.authorize_redirect(
-        redirect_uri=env.get("AUTH0_CALLBACK_URL"), audience=env.get("AUTH0_AUDIENCE")
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True), audience=env.get("AUTH0_AUDIENCE")
     )
 
 
@@ -89,7 +69,7 @@ def login():
 def logout():
     session.clear()
     return redirect(
-        auth0.api_base_url
+        "https://" + env.get("AUTH0_DOMAIN")
         + "/v2/logout?"
         + urlencode(
             {
