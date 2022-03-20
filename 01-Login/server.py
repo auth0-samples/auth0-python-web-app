@@ -41,10 +41,14 @@ oauth.register(
 # Controllers API
 @app.route("/")
 def home():
-    return render_template("home.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+    return render_template(
+        "home.html",
+        session=session.get("user"),
+        pretty=json.dumps(session.get("user"), indent=4),
+    )
 
 
-@app.route("/callback", methods=["GET","POST"])
+@app.route("/callback", methods=["GET", "POST"])
 def callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
@@ -54,7 +58,8 @@ def callback():
 @app.route("/login")
 def login():
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("callback", _external=True), audience=env.get("AUTH0_AUDIENCE")
+        redirect_uri=url_for("callback", _external=True),
+        audience=env.get("AUTH0_AUDIENCE"),
     )
 
 
@@ -62,7 +67,8 @@ def login():
 def logout():
     session.clear()
     return redirect(
-        "https://" + env.get("AUTH0_DOMAIN")
+        "https://"
+        + env.get("AUTH0_DOMAIN")
         + "/v2/logout?"
         + urlencode(
             {
