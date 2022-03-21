@@ -7,8 +7,7 @@ from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, jsonify, redirect, render_template, session, url_for
-from werkzeug.exceptions import HTTPException
+from flask import Flask, redirect, render_template, session, url_for
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -16,11 +15,6 @@ if ENV_FILE:
 
 app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
-
-
-def fetch_token(name, request):
-    token = OAuth2Token.find(name=name, user=request.user)
-    return token.to_token()
 
 
 oauth = OAuth(app)
@@ -31,10 +25,7 @@ oauth.register(
     client_kwargs={
         "scope": "openid profile email",
     },
-    server_metadata_url="https://"
-    + env.get("AUTH0_DOMAIN")
-    + "/.well-known/openid-configuration",
-    fetch_token=fetch_token,
+    server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration',
 )
 
 
@@ -58,8 +49,7 @@ def callback():
 @app.route("/login")
 def login():
     return oauth.auth0.authorize_redirect(
-        redirect_uri=url_for("callback", _external=True),
-        audience=env.get("AUTH0_AUDIENCE"),
+        redirect_uri=url_for("callback", _external=True)
     )
 
 
