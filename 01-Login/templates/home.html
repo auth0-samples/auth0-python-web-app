@@ -1,24 +1,16 @@
 <html>
-    <head>
-
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <!-- font awesome from BootstrapCDN -->
-        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
-
-        <link href="/public/app.css" rel="stylesheet">
-    </head>
-    <body class="home">
-        <div class="container">
-            <div class="login-page clearfix">
-              <div class="login-box auth0-box before">
-                <img src="https://i.cloudup.com/StzWWrY34s.png" />
-                <h3>Auth0 Example</h3>
-                <p>Zero friction identity infrastructure, built for developers</p>
-                <a id="qsLoginBtn" class="btn btn-primary btn-lg btn-login btn-block" href="/login">Log In</a>
-              </div>
-            </div>
-        </div>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Auth0 Example</title>
+  </head>
+  <body>
+    {% if session %}
+    <h1>Welcome {{session.userinfo.name}}!</h1>
+    <p><a href="/logout">Logout</a></p>
+    <div><pre>{{pretty}}</pre></div>
+    {% else %}
+    <h1>Welcome Guest</h1>
+    <p><a href="/login">Login</a></p>
+    {% endif %}
+  </body>
 </html>
