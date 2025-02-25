@@ -16,15 +16,17 @@ cd auth0-python-web-app
 ```bash
 pip install -r requirements.txt
 ```
-## Step 4: Using Auth0 SDK for Authentication
-Before implementing the OAuth flow, understand how to use the Auth0 SDK for direct authentication:
+
+## Step 4: Using Auth0-Python SDK for Client Intialization 
+
 ```python
 from auth0.authentication import GetToken
 # Initialize the GetToken object with your Auth0 domain and client credentials
 auth_client = GetToken('your-domain.us.auth0.com', 'your-client-id', client_secret='your-client-secret')
 ```
+
 ## Step 5: Modify the Login Route
-Replace the standard OAuth login route with a custom implementation that supports federated access:
+Replace the standard Authlib login route with a custom implementation that supports federated access:
 ```python
 @app.route("/login")
 def login():
@@ -56,6 +58,7 @@ def login():
     )
     return redirect(auth_url)
 ```
+
 ## Step 6: Update Callback Handler
 Update the callback handler to work with the custom login route:
 ```python
@@ -83,6 +86,7 @@ def callback():
         "refresh_token": token_response.get("refresh_token"),
         "id_token": token_response.get("id_token")
     }
+
     # Get user info
     user_info_url = f"https://{env.get('AUTH0_DOMAIN')}/userinfo"
     user_info_headers = {"Authorization": f"Bearer {token_response.get('access_token')}"}
@@ -91,6 +95,7 @@ def callback():
     session["user"] = user_info
     return redirect("/")
 ```
+
 ## Step 7: Implement Federated Token Route
 Add a new route for handling federated connections:
 ```python
@@ -157,6 +162,7 @@ def call_third_party_api(access_token):
 ```bash
 python server.py
 ```
+
 ## Key Concepts
 1. **Federated Connection**: An Auth0 feature that allows your application to obtain access tokens for third-party services through Auth0.
 2. **Token Exchange**: The process of exchanging a refresh token for a service-specific access token.
