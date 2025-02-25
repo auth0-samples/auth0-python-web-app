@@ -162,15 +162,4 @@ python server.py
 2. **Token Exchange**: The process of exchanging a refresh token for a service-specific access token.
 3. **Offline Access**: Requesting permission to refresh tokens even when the user is not present.
 4. **Connections**: Auth0's term for different identity providers or authentication methods (google-oauth2, github, etc.).
-## Security Considerations
-- Always store tokens securely
-- Use HTTPS for all communications
-- Validate state parameters to prevent CSRF attacks
-- Implement proper token refresh mechanisms
-- Don't expose sensitive credentials in client-side code
-## Troubleshooting
-- Check scopes if APIs return unauthorized errors
-- Ensure refresh tokens are being properly stored and used
-- Verify connection names match exactly with Auth0 configurations
-- Monitor token expiration and implement proper refresh logic
 
