@@ -163,9 +163,3 @@ def call_third_party_api(access_token):
 python server.py
 ```
 
-## Key Concepts
-1. **Federated Connection**: An Auth0 feature that allows your application to obtain access tokens for third-party services through Auth0.
-2. **Token Exchange**: The process of exchanging a refresh token for a service-specific access token.
-3. **Offline Access**: Requesting permission to refresh tokens even when the user is not present.
-4. **Connections**: Auth0's term for different identity providers or authentication methods (google-oauth2, github, etc.).
-
