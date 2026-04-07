@@ -1,0 +1,15 @@
+[project]
+name = "auth0-python-web-app"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "auth0-server-python>=1.0.0b1,<2",
+    "flask[async]",
+    "python-dotenv",
+    "markupsafe",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.10",
+]
