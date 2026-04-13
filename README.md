@@ -16,7 +16,7 @@ A minimal Flask application demonstrating Auth0 authentication with cookie-based
 uv sync
 ```
 
-2. Copy `.env.example` to `.env` and fill in your Auth0 credentials:
+2. Fill in your Auth0 credentials in the `.env` file:
 
 ```
 AUTH0_DOMAIN=your-tenant.auth0.com
