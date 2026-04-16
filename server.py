@@ -5,13 +5,8 @@ from os import environ as env
 from urllib.parse import urlparse
 
 from auth0_server_python.auth_server.server_client import ServerClient
-from auth0_server_python.auth_types import (
-    LogoutOptions,
-    StartInteractiveLoginOptions,
-    StateData,
-    TransactionData,
-)
-from auth0_server_python.store.abstract import StateStore, TransactionStore
+from auth0_server_python.auth_types import LogoutOptions, StartInteractiveLoginOptions, StateData, TransactionData
+from auth0_server_python.store.abstract import AbstractDataStore
 from dotenv import load_dotenv
 from flask import Flask, after_this_request, redirect, request
 from markupsafe import escape
@@ -22,61 +17,48 @@ app = Flask(__name__)
 
 
 # highlight-start stores
-# The SDK requires two stores: a StateStore for session data (user profile, tokens)
-# and a TransactionStore for short-lived OAuth flow data (PKCE verifiers, state params).
-# Both extend abstract base classes that provide encrypt() and decrypt() methods.
-# This implementation stores data in encrypted cookies, but you could also use
-# Redis, PostgreSQL, or any other backend by implementing the same
-# set/get/delete interface.
-def create_cookie_store(base, cookie_name, max_age, model, secret):
-    """Creates a store that persists encrypted data in cookies."""
+# The SDK requires two stores: one for session data (user profile, tokens)
+# and one for short-lived OAuth flow data (PKCE verifiers, state params).
+# Both extend AbstractDataStore which provides encrypt() and decrypt().
+# This implementation stores data in encrypted cookies, but you could
+# also use Redis, PostgreSQL, or any other backend by implementing
+# the same set/get/delete interface.
+class CookieStore(AbstractDataStore):
+    def __init__(self, secret, cookie_name, max_age, model):
+        super().__init__({"secret": secret})
+        self.cookie_name = cookie_name
+        self.max_age = max_age
+        self.model = model
 
-    class Store(base):
-        def __init__(self):
-            super().__init__({"secret": secret})
-
-        async def set(self, identifier, state, **_):
-            @after_this_request  # registers a callback on the current Flask response
-            def apply(response):
-                data = state.model_dump() if hasattr(state, "model_dump") else state
-                # In production, add secure=True to ensure cookies
-                # are only sent over HTTPS
-                response.set_cookie(
-                    cookie_name,
-                    self.encrypt(identifier, data),
-                    httponly=True,
-                    samesite="Lax",
-                    max_age=max_age,
-                )
-                return response
-
-        async def get(self, identifier, options=None):
-            encrypted = options["request"].cookies.get(cookie_name)
-            return (
-                model.model_validate(self.decrypt(identifier, encrypted))
-                if encrypted
-                else None
+    async def set(self, identifier, state, **_):
+        @after_this_request
+        def apply(response):
+            data = state.model_dump() if hasattr(state, "model_dump") else state
+            response.set_cookie(
+                self.cookie_name,
+                self.encrypt(identifier, data),
+                httponly=True,
+                samesite="Lax",
+                secure=not env.get("APP_BASE_URL", "").startswith("http://"),
+                max_age=self.max_age,
             )
+            return response
 
-        async def delete(self, *_, **__):
-            @after_this_request
-            def apply(response):
-                response.delete_cookie(cookie_name)
-                return response
+    async def get(self, identifier, options=None):
+        encrypted = options["request"].cookies.get(self.cookie_name)
+        return self.model.model_validate(self.decrypt(identifier, encrypted)) if encrypted else None
 
-    return Store()
+    async def delete(self, *_, **__):
+        @after_this_request
+        def apply(response):
+            response.delete_cookie(self.cookie_name)
+            return response
 # highlight-end stores
 
 
 # highlight-start auth-client
 def auth0():
-    secret = env.get("AUTH0_SECRET")
-    state_store = create_cookie_store(
-        StateStore, "_a0_session", 259200, StateData, secret,
-    )  # 3 days
-    transaction_store = create_cookie_store(
-        TransactionStore, "_a0_tx", 300, TransactionData, secret,
-    )  # 5 minutes
+    session_secret = env.get("AUTH0_SECRET")
 
     return ServerClient(
         domain=env.get("AUTH0_DOMAIN"),
@@ -84,9 +66,9 @@ def auth0():
         client_secret=env.get("AUTH0_CLIENT_SECRET"),
         redirect_uri=env.get("APP_BASE_URL") + "/callback",
         authorization_params={"scope": "openid profile email"},
-        secret=secret,
-        state_store=state_store,
-        transaction_store=transaction_store,
+        secret=session_secret,
+        state_store=CookieStore(session_secret, "_a0_session", 259200, StateData),  # 3 days
+        transaction_store=CookieStore(session_secret, "_a0_tx", 300, TransactionData),  # 5 min
     )
 # highlight-end auth-client
 
