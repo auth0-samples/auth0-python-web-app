@@ -1,13 +1,15 @@
+# This quickstart uses Flask, but the Auth0 Python SDK works with any
+# framework. For FastAPI, see: https://github.com/auth0/auth0-fastapi
 import json
 from os import environ as env
 from urllib.parse import urlparse
 
 from auth0_server_python.auth_server.server_client import ServerClient
 from auth0_server_python.auth_types import (
+    LogoutOptions,
     StartInteractiveLoginOptions,
     StateData,
     TransactionData,
-    LogoutOptions,
 )
 from auth0_server_python.store.abstract import StateStore, TransactionStore
 from dotenv import load_dotenv
@@ -24,8 +26,9 @@ app = Flask(__name__)
 # and a TransactionStore for short-lived OAuth flow data (PKCE verifiers, state params).
 # Both extend abstract base classes that provide encrypt() and decrypt() methods.
 # This implementation stores data in encrypted cookies, but you could also use
-# Redis, PostgreSQL, or any other backend by implementing the same set/get/delete interface.
-def CookieStore(base, cookie_name, max_age, model, secret):
+# Redis, PostgreSQL, or any other backend by implementing the same
+# set/get/delete interface.
+def create_cookie_store(base, cookie_name, max_age, model, secret):
     """Creates a store that persists encrypted data in cookies."""
 
     class Store(base):
@@ -36,7 +39,8 @@ def CookieStore(base, cookie_name, max_age, model, secret):
             @after_this_request  # registers a callback on the current Flask response
             def apply(response):
                 data = state.model_dump() if hasattr(state, "model_dump") else state
-                # In production, add secure=True to ensure cookies are only sent over HTTPS
+                # In production, add secure=True to ensure cookies
+                # are only sent over HTTPS
                 response.set_cookie(
                     cookie_name,
                     self.encrypt(identifier, data),
@@ -67,8 +71,12 @@ def CookieStore(base, cookie_name, max_age, model, secret):
 # highlight-start auth-client
 def auth0():
     secret = env.get("AUTH0_SECRET")
-    state_store = CookieStore(StateStore, "_a0_session", 259200, StateData, secret)  # 3 days
-    transaction_store = CookieStore(TransactionStore, "_a0_tx", 300, TransactionData, secret)  # 5 minutes
+    state_store = create_cookie_store(
+        StateStore, "_a0_session", 259200, StateData, secret,
+    )  # 3 days
+    transaction_store = create_cookie_store(
+        TransactionStore, "_a0_tx", 300, TransactionData, secret,
+    )  # 5 minutes
 
     return ServerClient(
         domain=env.get("AUTH0_DOMAIN"),
@@ -112,7 +120,7 @@ async def login():
     # highlight-start login
     url = await auth0().start_interactive_login(
         options=StartInteractiveLoginOptions(
-            authorization_params=dict(request.args)
+            authorization_params=dict(request.args),
         ),
         store_options={"request": request},
     )
@@ -125,12 +133,12 @@ async def callback():
     try:
         # highlight-start callback
         await auth0().complete_interactive_login(
-            url=request.url, store_options={"request": request}
+            url=request.url, store_options={"request": request},
         )
         # highlight-end callback
         return redirect("/")
-    except Exception as e:
-        app.logger.error(f"Callback error: {e}")
+    except Exception:
+        app.logger.exception("Callback error")
         return "Something went wrong. Check server logs for details.", 400
 
 
