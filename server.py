@@ -45,8 +45,12 @@ class CookieStore(AbstractDataStore):
             return response
 
     async def get(self, identifier, options=None):
-        encrypted = options["request"].cookies.get(self.cookie_name)
-        return self.model.model_validate(self.decrypt(identifier, encrypted)) if encrypted else None
+        try:
+            encrypted = options["request"].cookies.get(self.cookie_name)
+            return self.model.model_validate(self.decrypt(identifier, encrypted)) if encrypted else None
+        except Exception:
+            app.logger.warning("Failed to decrypt cookie %s", self.cookie_name, exc_info=True)
+            return None
 
     async def delete(self, *_, **__):
         @after_this_request

@@ -1,1 +1,1 @@
-uv run python server.py
+uv run python start.py
