@@ -111,7 +111,7 @@ download:
   - title: "Start the app"
     contentBlocks:
       - type: markdown
-        content: "The application runs on `%APP_BASE_URL%`"
+        content: "The application runs on `%APP_SCHEME%://%APP_DOMAIN%:%PORT%`"
       - type: terminal
         <<: *start
   - <<: *tryOutStep
