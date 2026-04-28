@@ -62,19 +62,35 @@ snippets:
     source: "quickstart/scripts/install-auth0.sh"
     language: "bash"
   env: &env
+    type: constructed
     fileName: *defaultEnvFileName
-    content: |
-      AUTH0_DOMAIN=%AUTH0_DOMAIN%
-      AUTH0_CLIENT_ID=%AUTH0_CLIENT_ID%
-      AUTH0_CLIENT_SECRET=%AUTH0_CLIENT_SECRET%
-
-      # 64-character random string used to encrypt the session cookie
-      # Generate with: openssl rand -hex 32
-      AUTH0_SECRET=%AUTH0_SECRET%
-
-      APP_BASE_URL=%APP_SCHEME%://%APP_DOMAIN%:%PORT%
-      PORT=%PORT%
     language: "bash"
+    entries:
+      - type: var
+        name: AUTH0_DOMAIN
+        value: "%AUTH0_DOMAIN%"
+      - type: var
+        name: AUTH0_CLIENT_ID
+        value: "%AUTH0_CLIENT_ID%"
+      - type: var
+        name: AUTH0_CLIENT_SECRET
+        value: "%AUTH0_CLIENT_SECRET%"
+        sensitive: true
+      - type: separator
+      - type: var
+        name: AUTH0_SECRET
+        value: "%AUTH0_SECRET%"
+        sensitive: true
+        comment: |
+          64-character random string used to encrypt the session cookie
+          Generate with: openssl rand -hex 32
+      - type: separator
+      - type: var
+        name: APP_BASE_URL
+        value: "%APP_SCHEME%://%APP_DOMAIN%:%PORT%"
+      - type: var
+        name: PORT
+        value: "%PORT%"
   server-py: &serverPy
     source: "server.py"
     language: "python"
